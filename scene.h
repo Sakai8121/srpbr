@@ -1,9 +1,10 @@
-#ifndef __SCENE_H__
+﻿#ifndef __SCENE_H__
 #define __SCENE_H__
 
 #include <cassert>
 #include <vector>
 #include <memory>
+#include "texture.h"
 
 struct model_t
 {
@@ -57,15 +58,17 @@ public:
 		eye_pos.set(0.4f, 4.5f, 0.25f);
 		look_at.set(0.0f, 0.0f, 0.0f);
 
-		light_angle.set(cPI, cPI / 2.0f, 0.0f);
-		light_intensity.set(1.0f, 1.0f, 1.0f, 8.0f);
+		// ライトは使わない（IBLのみ）
+		light_angle.set(0, 0, 0);
+		light_intensity.set(0, 0, 0, 0);
 
-		sky_env_map.load_tex("./resource/ibl_textures/env.png", true);
+		//sky_env_map.load_tex("./resource/ibl_textures/env.png", true);
+		sky_env_map.load_tex("./resource/myhdr/env.png", true);
 		skybox_mesh.load("./resource/mesh_sphere.obj");
 		skybox_world.set_scale(1000.0f, 1000.0f, 1000.0f);
 		skybox_world.translate(0, 0, -500.0f);
 
-		model_t* ball = new model_t(shading_model_t::eSM_PBR, cull_mode_t::eCM_CW);
+		/*model_t* ball = new model_t(shading_model_t::eSM_PBR, cull_mode_t::eCM_CW);
 		ball->mesh.load("./resource/mesh_sphere.obj");
 		ball->shader_resource.albedo_tex.load_tex("./resource/rustediron2_basecolor.png", true);
 		ball->shader_resource.metallic_tex.load_tex("./resource/rustediron2_metallic.png", true);
@@ -73,7 +76,31 @@ public:
 		ball->shader_resource.normal_tex.load_tex("./resource/rustediron2_normal.png", false);
 		ball->local_to_world.set_scale(1.6f, 1.6f, 1.6f);
 		ball->local_to_world.translate(0, 0, -0.8f);
+		scn_models.push_back(ball);*/
+
+		// ------------------------------
+		// 白い球
+		// ------------------------------
+		model_t* ball = new model_t(shading_model_t::eSM_PBR, cull_mode_t::eCM_CW);
+		ball->mesh.load("./resource/mesh_sphere.obj");
+
+		// テクスチャを読み込まずに白色にする
+		ball->shader_resource.albedo_tex.init(1, 1); // 1x1 テクスチャでも OK
+		ball->shader_resource.albedo_tex.write_at(0, 0, vector4_t::one());
+
+		ball->shader_resource.metallic_tex.init(1, 1);
+		ball->shader_resource.metallic_tex.write_at(0, 0, vector4_t(1.0f, 1.0f, 1.0f, 1.0f)); // 金属度 1
+
+		ball->shader_resource.roughness_tex.init(1, 1);
+		ball->shader_resource.roughness_tex.write_at(0, 0, vector4_t(0.25f, 0.25f, 0.25f, 0.25f)); // 粗さ 0.25
+
+		ball->shader_resource.normal_tex.init(1, 1);
+		ball->shader_resource.normal_tex.write_at(0, 0, vector4_t(0.5f, 0.5f, 1.0f, 1.0f)); // 法線は上向き
+
+		ball->local_to_world.set_scale(1.6f, 1.6f, 1.6f);
+		ball->local_to_world.translate(0, 0, -0.8f);
 		scn_models.push_back(ball);
+
 
 		model_t* gun = new model_t(shading_model_t::eSM_PBR, cull_mode_t::eCM_CW);
 		gun->mesh.load("./resource/gun/Air_Gun.obj");
@@ -134,7 +161,7 @@ public:
 	}
 
 	void next_ibl(soft_renderer_t* soft_renderer) {
-		static const std::string ibl_paths[] = { "./resource/ibl_textures/", "./resource/epic_quad/" };
+		static const std::string ibl_paths[] = { "./resource/myhdr/","./resource/ibl_textures/", "./resource/epic_quad/" };
 		++current_ibl_idx;
 		if (current_ibl_idx >= array_size(ibl_paths)) {
 			current_ibl_idx = 0;

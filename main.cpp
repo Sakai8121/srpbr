@@ -250,8 +250,19 @@ HWND init_window(HINSTANCE instance, const TCHAR* title, int width, int height)
 }
 
 
-int main()
+int main(int argc, char** argv)
 {
+	// ===== 事前計算モード =====
+	if (argc > 1 && std::string(argv[1]) == "precompute") {
+		std::string src = "../../resource/myhdr/env.png"; // あなたのクロスレイアウトPNG
+		generate_irradiance_map(src, "../../resource/myhdr/irradiance.png");
+		generate_prefilter_envmap(src, "../../resource/myhdr/prefilter");
+		generate_BRDF_LUT("../../resource/myhdr/brdf_lut.png", 512);
+		std::cout << "Precomputation finished." << std::endl;
+		return 0;
+	}
+
+	// ===== ここから下は既存のレンダリング処理 =====
 	LARGE_INTEGER temp;
 	::QueryPerformanceFrequency(&temp);
 	reci_freq = 1000.0f / temp.QuadPart;
@@ -279,8 +290,7 @@ int main()
 	main_loop(hwnd, hdc);
 
 	delete soft_renderer;
-
 	return 0;
-
 }
+
 

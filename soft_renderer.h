@@ -1,9 +1,9 @@
-#ifndef __SOFT_RENDERER_H__
+﻿#ifndef __SOFT_RENDERER_H__
 #define __SOFT_RENDERER_H__
 #include <memory>
 
 /*
- ��һ����ˮƽ��������
+ ﾓﾐﾒｻｱﾟﾊﾇﾋｮﾆｽｵﾄﾈｽﾇﾐﾎ
  l----------r
   \        /
    \      /
@@ -140,7 +140,7 @@ soft_renderer_t::soft_renderer_t(int w, int h, uint32_t* fb, float infovy, float
 		zbuffer[i] = 0;
 	}
 
-	ibl.load("./resource/ibl_textures/");
+	ibl.load("./resource/myhdr/");
 
 	camera.fovy = infovy;
 	camera.aspect = 1.0f * width / height;
@@ -310,13 +310,13 @@ void soft_renderer_t::pbr_shading(const interp_vertex_t& p, vector4_t& out_color
 	pbr_param.metallic = metallic_texel.r;
 	pbr_param.roughness = roughness_texel.r;
 
-	pbr_param.roughness = clamp(pbr_param.roughness, 0.02f, 1.0f); // roughnessΪ0����Ӧ����ȫ�ķ��䣬���ڷ������Դ������������ķ���ֵ������ȫ�����е������Ϊ0��һ���ϣ�
+	pbr_param.roughness = clamp(pbr_param.roughness, 0.02f, 1.0f); // roughnessﾎｪ0｣ｬｶﾔﾓｦﾗﾅﾍ・ｫｵﾄｷｴﾉ茱ｬｶﾔﾓﾚｷﾇﾃ貊ｹ籌ｴ｣ｬｻ盍揵昀ﾞﾇ鋗ﾄｷｴﾉ葷ｵ｣ｨﾄﾜﾁｿﾈｫｲｿｼｯﾖﾐｵｽﾁﾋﾃ貊ﾎｪ0ｵﾄﾒｻｵ翹ﾏ｣ｩ
 
 	float a = pbr_param.roughness * pbr_param.roughness;
 
-	// F��������ϵ�����ǹ��߷�������������ı����������ߴ�ֱ�������ʱ�ķ�����ϵ����ΪF0��F0�ǿ���ʵ�ʲ���������
-	// ��ͬ�Ĳ��ʣ����F0�ǲ�ͬ�ģ�F0Խ�󣬸о���Խ��������������ͨ��F0�Ƚϴ󣬶���������ɫ�ģ���ͬƵ�ʵĹ⣬��Ӧ������ϵ����ͬ�����ǽ����������Ҳ��һ��㷴�䣬��ȡ(0.04, 0.04, 0.04)��
-	// ��Ⱦ��ͨ����һ��Ȩ��ϵ���������ȣ��ڷǽ������ʵ���С������ϵ���;�����ǿ�����ԵĲ��ʷ�����ϵ����������������ɫ��֮��������Բ�ֵ�õ�F0.
+	// F｣ｺｷﾆﾄ鋧ｵﾊ｣ｬﾊﾇｹ簪ﾟｷ｢ﾉ弡ｴﾉ萼・ﾛﾉ莊ﾄｱﾈﾀ｣ｬｵｱｹ簪ﾟｴｹﾖｱｽ・朎賁ｱｵﾄｷﾆﾄ鋧ｵﾊｼﾇﾎｪF0｣ｬF0ﾊﾇｿﾉﾒﾔﾊｵｼﾊｲ簔ｿｳｴｵﾄ
+	// ｲｻﾍｬｵﾄｲﾄﾖﾊ｣ｬﾕ篋0ﾊﾇｲｻﾍｬｵﾄ｣ｬF0ﾔｽｴｬｸﾐｾﾇﾔｽﾃﾁ｣ｬｽﾄﾖﾊﾍｨｳ｣F0ｱﾈｽﾏｴｬｶﾒﾊﾇﾓﾐﾑﾕﾉｫｵﾄ｣ｨｲｻﾍｬﾆｵﾂﾊｵﾄｹ筌ｬｶﾔﾓｦｷﾆﾄ鋧ｵﾊｲｻﾍｬ｣ｩ｣ｬｷﾇｽﾄﾖﾊﾗ鋙ﾍﾒｲﾓﾐﾒｻｵ羞羚ｴﾉ茱ｬｾﾍﾈ｡(0.04, 0.04, 0.04)｣ｬ
+	// 葷ﾈｾﾖﾐﾍｨｳ｣ﾓﾃﾒｻｸｨﾖﾘﾏｵﾊ｣ｨｽﾈ｣ｩﾔﾚｷﾇｽﾄﾖﾊｵﾄﾗ隯｡ｷﾆﾄ鋧ｵﾊｺﾍｾﾟﾓﾐﾗ鏞ｿｽﾔｵﾄｲﾄﾖﾊｷﾆﾄ鋧ｵﾊ｣ｨﾗﾔﾉ曺ｷｴﾉ葭ﾕﾉｫ｣ｩﾖｮｼ菴ﾐﾏﾟﾐﾔｲ袒ｵｵﾃｵｽF0.
 	vector3_t temp(0.04f, 0.04f, 0.04f);
 	pbr_param.f0 = lerp(temp, albedo, pbr_param.metallic);
 
@@ -332,8 +332,8 @@ void soft_renderer_t::pbr_shading(const interp_vertex_t& p, vector4_t& out_color
 
 	vector3_t cook_torrance_brdf = F * D * V;
 
-	//kd��ks�ֱ���������;��淴��ϵ�������������������ھ��淴���������֮����з��䣬�����������غ㶨�ɡ� ���kd + ks < 1
-	//F�����˲��ʱ��淴���ʣ���ô���ǿ���ֱ����ks = F��Ȼ����kd = (1 - ks) * (1 - metallic)����ʵ�����ǽ����������ھ��淴���������֮������˷��䣬�����������غ㶨��
+	//kdｺﾍksｷﾖｱﾇﾂｷｴﾉ莠ﾍｾｵﾃ豺ｴﾉ蔆ｵﾊ｣ｬｱ橾ﾋﾈ・萋ﾜﾁｿﾔﾚｾｵﾃ豺ｴﾉ莠ﾍﾂｷｴﾉ葷ｮｼ菴ﾐｷﾖﾅ茱ｬﾒﾔﾂ晙翔ﾜﾁｿﾊﾘｺ羝ｨﾂﾉ｡｣ ﾒﾋkd + ks < 1
+	//Fｴ﨑暿ﾋｲﾄﾖﾊｱ朎豺ｴﾉ萃ﾊ｣ｬﾄﾇﾃｴﾎﾒﾃﾇｿﾉﾒﾔﾖｱｽﾓﾈﾃks = F｣ｬﾈｻｺ箞d = (1 - ks) * (1 - metallic)｡｣ﾕ簗ｵｼﾊﾉﾏﾊﾇｽｫﾈ・萋ﾜﾁｿﾔﾚｾｵﾃ豺ｴﾉ莠ﾍﾂｷｴﾉ葷ｮｼ菴ﾐﾁﾋｷﾖﾅ茱ｬﾒﾔﾂ晙翔ﾜﾁｿﾊﾘｺ羝ｨﾂﾉ
 	vector3_t ks = F;
 	vector3_t kd = (vector3_t::one() - F) * (1.0f - pbr_param.metallic);
 
@@ -388,7 +388,7 @@ void soft_renderer_t::pixel_process(int x, int y, const interp_vertex_t& p)
 void soft_renderer_t::scan_horizontal(const interp_vertex_t& vl, const interp_vertex_t& vr, int y)
 {
 	float dist = vr.pos.x - vl.pos.x;
-	// leftҪ��Сȡ����rightҪ����ȡ��������������֮��Ľӷ��϶��
+	// leftﾒｪﾍ｡ﾈ｡ﾕ訒ｬrightﾒｪﾍ｡ﾕ訒ｬｱﾜﾃ篳ｽﾇﾐﾎﾖｮｼ莊ﾄｽﾓｷ・ﾕﾏｶ｣｡
 	int left = (int)(vl.pos.x);
 	int right = (int)(vr.pos.x + 0.5f);
 	left = clamp(left, 0, width - 1);
@@ -417,7 +417,7 @@ void soft_renderer_t::scan_triangle(scan_tri_t* sctri)
 	float ymin = std::fmin(sctri->p.pos.y, sctri->l.pos.y);
 	float ydist = sctri->p.pos.y - sctri->l.pos.y;
 
-	// bottomҪ��Сȡ����topҪ����ȡ��������������֮��Ľӷ��϶��
+	// bottomﾒｪﾍ｡ﾈ｡ﾕ訒ｬtopﾒｪﾍ｡ﾕ訒ｬｱﾜﾃ篳ｽﾇﾐﾎﾖｮｼ莊ﾄｽﾓｷ・ﾕﾏｶ｣｡
 	int bottom = (int)(ymin);
 	int top = (int)(ymax + 0.5f);
 	bottom = clamp(bottom, 0, height - 1);
@@ -457,7 +457,7 @@ void soft_renderer_t::perspective_divide(interp_vertex_t* p)
 	p->pos.x *= revw;
 	p->pos.y *= revw;
 	p->pos.z *= revw;
-	p->pos.w = revw; // �����1/w����Ϊ͸��У��ԭ��1/w�������Թ�ϵ�� 1/p.w = lerp(1/p0.w, 1/p1.w, weight)
+	p->pos.w = revw; // ﾕ簑・・/w｣ｬﾒｪﾍｸﾊﾓﾐ｣ﾕﾔｭﾒｬ1/wｲﾅﾓﾐﾏﾟﾐﾔｹﾘﾏｵ｣ｺ 1/p.w = lerp(1/p0.w, 1/p1.w, weight)
 
 	p->wpos.x *= revw;
 	p->wpos.y *= revw;
