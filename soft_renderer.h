@@ -270,6 +270,24 @@ void soft_renderer_t::phong_shading(const interp_vertex_t& p, vector4_t& out_col
 
 }
 
+void debug_log_pbr_param(const pbr_param_t& p)
+{
+	std::cout << "==== PBR Param ====" << std::endl;
+	std::cout << "n      : (" << p.n.x << ", " << p.n.y << ", " << p.n.z << ")" << std::endl;
+	std::cout << "v      : (" << p.v.x << ", " << p.v.y << ", " << p.v.z << ")" << std::endl;
+	std::cout << "l      : (" << p.l.x << ", " << p.l.y << ", " << p.l.z << ")" << std::endl;
+	std::cout << "h      : (" << p.h.x << ", " << p.h.y << ", " << p.h.z << ")" << std::endl;
+
+	std::cout << "NoL    : " << p.NoL << " | NoH : " << p.NoH
+		<< " | NoV : " << p.NoV << " | HoV : " << p.HoV << std::endl;
+
+	std::cout << "metallic  : " << p.metallic
+		<< " | roughness : " << p.roughness << std::endl;
+
+	std::cout << "f0      : (" << p.f0.x << ", " << p.f0.y << ", " << p.f0.z << ")" << std::endl;
+}
+
+
 void soft_renderer_t::pbr_shading(const interp_vertex_t& p, vector4_t& out_color)
 {
 	texcoord_t uv = p.uv;
@@ -319,6 +337,13 @@ void soft_renderer_t::pbr_shading(const interp_vertex_t& p, vector4_t& out_color
 	// 葷ﾈｾﾖﾐﾍｨｳ｣ﾓﾃﾒｻｸｨﾖﾘﾏｵﾊ｣ｨｽﾈ｣ｩﾔﾚｷﾇｽﾄﾖﾊｵﾄﾗ隯｡ｷﾆﾄ鋧ｵﾊｺﾍｾﾟﾓﾐﾗ鏞ｿｽﾔｵﾄｲﾄﾖﾊｷﾆﾄ鋧ｵﾊ｣ｨﾗﾔﾉ曺ｷｴﾉ葭ﾕﾉｫ｣ｩﾖｮｼ菴ﾐﾏﾟﾐﾔｲ袒ｵｵﾃｵｽF0.
 	vector3_t temp(0.04f, 0.04f, 0.04f);
 	pbr_param.f0 = lerp(temp, albedo, pbr_param.metallic);
+
+	//パラメータをログに一度だけ出力する
+	static bool printed = false;
+	if (!printed) {
+		debug_log_pbr_param(pbr_param);
+		printed = true; // 以降は出さない
+	}
 
 	vector3_t F = F_fresenl_schlick(pbr_param.HoV, pbr_param.f0);
 
