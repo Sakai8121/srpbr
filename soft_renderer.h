@@ -368,7 +368,8 @@ void soft_renderer_t::pbr_shading(const interp_vertex_t& p, vector4_t& out_color
 
 	vector3_t brdf = kd * diffuse_brdf + cook_torrance_brdf;
 
-	vector3_t radiance = brdf * directIrradiance;
+	//vector3_t radiance = brdf * directIrradiance;
+	vector3_t radiance = vector3_t(0,0,0);
 
 	vector3_t indirect_radiance = ibl.calc_lighting(pbr_param, albedo);
 
@@ -380,8 +381,34 @@ void soft_renderer_t::pbr_shading(const interp_vertex_t& p, vector4_t& out_color
 
 }
 
+// enumを文字列に変換するヘルパー関数
+const char* shading_model_to_string(shading_model_t model) {
+	switch (model) {
+	case shading_model_t::eSM_Color:   return "eSM_Color";
+	case shading_model_t::eSM_Phong:   return "eSM_Phong";
+	case shading_model_t::eSM_PBR:     return "eSM_PBR";
+	case shading_model_t::eSM_Skybox:  return "eSM_Skybox";
+	default:                           return "Unknown";
+	}
+}
+
 void soft_renderer_t::pixel_process(int x, int y, const interp_vertex_t& p)
 {
+	// ★★★ 各シェーダーモデル用のログ出力フラグ配列 ★★★
+	static bool has_logged[static_cast<size_t>(shading_model_t::eSM_MAX)] = { false };
+
+	// 現在のシェーディングモデルに対応するインデックスを取得
+	size_t model_index = static_cast<size_t>(shading_model);
+
+	// まだログを出力していないシェーダーであれば、ログを出してフラグを立てる
+	if (model_index < static_cast<size_t>(shading_model_t::eSM_MAX) && !has_logged[model_index])
+	{
+		std::cout << "Shading model '" << shading_model_to_string(shading_model)
+			<< "' was called for the first time at Pixel(" << x << ", " << y << ")." << std::endl;
+		has_logged[model_index] = true;
+	}
+
+
 	vector4_t color;
 	switch (shading_model)
 	{
