@@ -368,7 +368,16 @@ void soft_renderer_t::pbr_shading(const interp_vertex_t& p, vector4_t& out_color
 
 	vector3_t brdf = kd * diffuse_brdf + cook_torrance_brdf;
 
-	//vector3_t radiance = brdf * directIrradiance;
+	//vector3_t radiance = brdf * directIrradiance; //一度ログに出したところ0,0,0だった
+	// ログに一度だけ出力する
+	//static bool printedRadiance = false;
+	//if (!printedRadiance) {
+	//	std::cout << "Radiance: ("
+	//		<< radiance.x << ", "
+	//		<< radiance.y << ", "
+	//		<< radiance.z << ")" << std::endl;
+	//	printedRadiance = true; // 以降は出さない
+	//}
 	vector3_t radiance = vector3_t(0,0,0);
 
 	vector3_t indirect_radiance = ibl.calc_lighting(pbr_param, albedo);
