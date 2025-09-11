@@ -113,7 +113,7 @@ private:
 	bool depth_test(int x, int y, float z);
 	vector3_t normal_mapping(const vector3_t& vt_n, const vector3_t& ts_n);
 	void phong_shading(const interp_vertex_t& p, vector4_t& out_color);
-	void pbr_shading(const interp_vertex_t& p, vector4_t& out_color);
+	void pbr_shading(const interp_vertex_t& p, vector4_t& out_color, int x, int y);
 	void pixel_process(int x, int y, const interp_vertex_t& p);
 
 	void scan_horizontal(const interp_vertex_t& vl, const interp_vertex_t& vr, int y);
@@ -288,7 +288,7 @@ void debug_log_pbr_param(const pbr_param_t& p)
 }
 
 
-void soft_renderer_t::pbr_shading(const interp_vertex_t& p, vector4_t& out_color)
+void soft_renderer_t::pbr_shading(const interp_vertex_t& p, vector4_t& out_color, int x, int y)
 {
 	texcoord_t uv = p.uv;
 	uv.u /= p.pos.w;
@@ -362,6 +362,7 @@ void soft_renderer_t::pbr_shading(const interp_vertex_t& p, vector4_t& out_color
 	vector3_t ks = F;
 	vector3_t kd = (vector3_t::one() - F) * (1.0f - pbr_param.metallic);
 
+
 	vector3_t directIrradiance = uniformbuffer.light_intensity * pbr_param.NoL;
 
 	vector3_t diffuse_brdf = albedo / cPI;
@@ -380,7 +381,7 @@ void soft_renderer_t::pbr_shading(const interp_vertex_t& p, vector4_t& out_color
 	//}
 	vector3_t radiance = vector3_t(0,0,0);
 
-	vector3_t indirect_radiance = ibl.calc_lighting(pbr_param, albedo);
+	vector3_t indirect_radiance = ibl.calc_lighting(pbr_param, albedo,x,y);
 
 	radiance += indirect_radiance;
 
@@ -428,7 +429,7 @@ void soft_renderer_t::pixel_process(int x, int y, const interp_vertex_t& p)
 		phong_shading(p, color);
 		break;
 	case shading_model_t::eSM_PBR:
-		pbr_shading(p, color);
+		pbr_shading(p, color,x,y);
 		break;
 	case shading_model_t::eSM_Skybox:
 	{
@@ -446,6 +447,17 @@ void soft_renderer_t::pixel_process(int x, int y, const interp_vertex_t& p)
 	write_depth(x, y, p.pos.z);
 }
 
+//役割: y行における「左端(vl) と右端(vr) の間」を横方向にスキャンしてピクセルを埋める。
+//
+//処理内容 :
+//
+//左右のx座標を整数にして、描画範囲を決定。
+//
+//xを1ピクセルずつ動かしながら、左端と右端の補間係数 w を計算。
+//
+//頂点属性（位置、法線、UVなど）を線形補間してピクセルに渡す。
+//
+//深度テストに合格すれば、そのピクセルに色を塗る(pixel_process)。
 void soft_renderer_t::scan_horizontal(const interp_vertex_t& vl, const interp_vertex_t& vr, int y)
 {
 	float dist = vr.pos.x - vl.pos.x;
@@ -465,6 +477,15 @@ void soft_renderer_t::scan_horizontal(const interp_vertex_t& vl, const interp_ve
 	}
 }
 
+//役割: 三角形の「台形部分」を1ラインずつ塗る。
+//
+//処理内容 :
+//
+//与えられた三角形を「共通の水平辺（底辺または頂辺）」を基準に、左端(l) と右端(r) に並べ直す。
+//
+//y方向に走査しながら、現在の行の左右端の座標 vl と vr を補間で求める。
+//
+//各行を scan_horizontal に渡して横方向を塗る。
 void soft_renderer_t::scan_triangle(scan_tri_t* sctri)
 {
 	if (sctri->l.pos.x > sctri->r.pos.x) {
@@ -556,6 +577,21 @@ void soft_renderer_t::vertex_process(const matrix_t& world, const matrix_t& mvp,
 	to_screen_coord(&p.pos);
 }
 
+//役割: 任意の三角形を「上半分」と「下半分」に分けて scan_triangle に渡す。
+//
+//処理内容 :
+//
+//三角形のy座標が全部同じ or x座標が全部同じなら無視（退化三角形）。
+//
+//三角形をソートして「p0が一番下、p2が一番上」になるように並べる。
+//
+//上が水平辺の三角形 → uptri として scan_triangle
+//
+//下が水平辺の三角形 → downtri として scan_triangle
+//
+//どちらでもない → 中間点を作って「上三角形」と「下三角形」に分割して scan_triangle 2回実行。
+//
+//結果的に どんな三角形も「上と下の2つの台形」へ分割して塗れる。
 void soft_renderer_t::draw_triangle(const interp_vertex_t& p0, const interp_vertex_t& p1, const interp_vertex_t& p2)
 {
 	// degenerate triangle
@@ -787,6 +823,19 @@ void soft_renderer_t::set_eye_lookat(const vector3_t &eye, const vector3_t &at)
 	uniformbuffer.viewproj = mul(uniformbuffer.view, uniformbuffer.proj);
 }
 
+//役割: メッシュ全体を描画する。
+//
+//処理内容 :
+//
+//頂点をワールド座標 → クリップ座標に変換(vertex_process)。
+//
+//三角形ごとのインデックスを取り出して、面の向きでカリング（CW / CCW）。
+//
+//クリップ領域外の三角形はスキップ。
+//
+//残った三角形をソートして draw_triangle に渡す。
+//
+//ワイヤーフレームモードなら線だけ描画、そうでなければ塗りつぶす。
 void soft_renderer_t::render_model(mesh_t* mesh, const matrix_t &world)
 {
 	mesh_vertex_vec_t& vb = mesh->m_mesh_vertex;

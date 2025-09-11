@@ -1,4 +1,4 @@
-#ifndef __IBL_H__
+﻿#ifndef __IBL_H__
 #define __IBL_H__
 
 #include <vector>
@@ -60,7 +60,7 @@ public:
 		}
 	}
 
-	vector3_t calc_lighting(const pbr_param_t& pbr_param, const vector3_t& albedo)
+	vector3_t calc_lighting(const pbr_param_t& pbr_param, const vector3_t& albedo, int pixel_x, int pixel_y)
 	{
 		vector3_t F = F_fresenl_schlick_roughness(pbr_param.NoV, pbr_param.f0, pbr_param.roughness);
 		vector3_t ks = F;
@@ -76,6 +76,15 @@ public:
 		texcoord_t lut_uv(pbr_param.NoV, pbr_param.roughness);
 
 		vector3_t envBRDF = brdf_lut->sample(lut_uv).to_vec3();
+
+		//// --- ログ出力（128ピクセルごとに間引き） ---
+		//if ((pixel_x % 64 == 0) && (pixel_y % 64 == 0)) {
+		//	printf("px=(%d,%d), irr=(%.4f,%.4f,%.4f), pre=(%.4f,%.4f,%.4f), brdf=(%.4f,%.4f,%.4f)\n",
+		//		pixel_x, pixel_y,
+		//		irradiance.x, irradiance.y, irradiance.z,
+		//		prefiltered_part.x, prefiltered_part.y, prefiltered_part.z,
+		//		envBRDF.x, envBRDF.y, envBRDF.z);
+		//}
 
 		vector3_t specular = prefiltered_part * (F * envBRDF.x + vector3_t::one() * envBRDF.y);
 
